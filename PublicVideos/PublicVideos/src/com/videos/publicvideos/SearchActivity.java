@@ -1,12 +1,23 @@
 package com.videos.publicvideos;
 
 import java.util.ArrayList;
+
+import android.view.View.OnKeyListener;
+import android.view.View.OnClickListener;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -14,11 +25,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.PopupWindow;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +47,10 @@ public class SearchActivity extends Activity {
 	private static Context context;
 	public static Handler UIHandler;
 	private static int pageCount = 1;
+	String sortBy="relevance";
+	static MyCustomBaseAdapter adapter;
 	static ArrayList<SearchResults> searchResults = new ArrayList<SearchResults>();
+	
 
 	static {
 		UIHandler = new Handler(Looper.getMainLooper());
@@ -67,12 +85,17 @@ public class SearchActivity extends Activity {
 				+ "&fields=id,title,owner.screenname,thumbnail_120_url&page="
 				+ Page;
 		new RequestTask().execute(uri);
-		textView.setText("Search Results (" + search + ")");
+		textView.setText("Search Results (" + search.replace('+', ' ') + ")");
 	}
 
 	public void onClickBtn(View v) {
 		String searchTxt = edit.getText().toString();
 		searchTxt.trim();
+		View view = this.getCurrentFocus();
+		if (view != null) {  
+		    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+		}
 		if (!searchTxt.isEmpty()) {
 			String temp = searchTxt;
 			if (searchTxt.contains(" ")) {
@@ -88,6 +111,41 @@ public class SearchActivity extends Activity {
 			Toast.makeText(context, "Please Enter Something",
 					Toast.LENGTH_SHORT).show();
 		}
+	}
+	
+	public void onClickImg(View v) {
+		//open popupwindow here
+		final Dialog myDialog = new Dialog(this);
+		myDialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
+		View view = LayoutInflater.from(this).inflate(
+				R.layout.popup, null);
+		final RadioGroup radio=(RadioGroup)view.findViewById(R.id.radioGroup1);
+		final RadioButton r1=(RadioButton)view.findViewById(R.id.radio0);
+		final RadioButton r2=(RadioButton)view.findViewById(R.id.radio1);
+		final RadioButton r3=(RadioButton)view.findViewById(R.id.radio2);
+		Button exit = (Button) view.findViewById(R.id.button1);
+		exit.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				int selectedID=radio.getCheckedRadioButtonId();
+				if(selectedID==r1.getId())
+					sortBy="relevance";
+				if(selectedID==r2.getId())
+					sortBy="ranking";
+				if(selectedID==r3.getId())
+					sortBy="recent";
+				
+				myDialog.dismiss();
+				
+			}
+		});
+		myDialog.setContentView(view);
+		myDialog.setTitle("settings");
+		myDialog.show();
+		
+		myDialog.getWindow().setLayout(580, 540); // Controlling width and
+													// height.
 	}
 
 	public static void GetDMResponse(String result) {
@@ -120,10 +178,14 @@ public class SearchActivity extends Activity {
 					searchResults.add(temp);
 				}
 				progress.dismiss();
+				
 				SearchActivity.runOnUI(new Runnable() {
 					@Override
 					public void run() {
-						CreateView();
+						if(pageCount==1)
+							CreateView();
+						else
+							adapter.notifyDataSetChanged();
 					}
 				});
 			}
@@ -138,14 +200,16 @@ public class SearchActivity extends Activity {
 		btnLoadMore.setText("Load More");
 		if (listView.getFooterViewsCount() == 0)
 			listView.addFooterView(btnLoadMore);
-		listView.setAdapter(new MyCustomBaseAdapter(context, searchResults));
+		adapter = new MyCustomBaseAdapter(context, searchResults);
+		listView.setAdapter(adapter);
 
 		btnLoadMore.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
 				if (ShowMore) {
-					progress.show();
-					SearchVideo(searchTerm, ++pageCount);
+					//progress.show();
+					pageCount++;
+					SearchVideo(searchTerm, pageCount);
 				} else {
 					Toast.makeText(context, "More results not available",
 							Toast.LENGTH_SHORT).show();
@@ -177,15 +241,23 @@ public class SearchActivity extends Activity {
 		progress.setTitle("Searching");
 		progress.setMessage("Please wait while videos are being searched...");
 		progress.show();
-		String uri = "https://api.dailymotion.com/videos?search=" + searchTerm
-				+ "&fields=id,title,owner.screenname,thumbnail_120_url&page="
-				+ 1;
+		String uri = makeUri(null,"trending", "1");
 		new RequestTask().execute(uri);
 		listView = (ListView) findViewById(R.id.ListView01);
 		edit = (EditText) findViewById(R.id.searchText);
+		
 		textView = (TextView) findViewById(R.id.ListHeadingText);
 		TextView textView = (TextView) findViewById(R.id.ListHeadingText);
-		textView.setText("Search Results (trailers)");
+		textView.setText("Showing:Trending Videos");
+		
+	}
+	
+	public static String makeUri(String search, String sort, String page)
+	{
+		return "https://api.dailymotion.com/videos?search=" + search +
+				"&sort=" + sort
+				+ "&fields=id,title,owner.screenname,thumbnail_120_url&page="
+				+ page;
 	}
 
 }
