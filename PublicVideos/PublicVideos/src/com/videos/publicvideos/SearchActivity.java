@@ -16,6 +16,8 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -51,6 +53,8 @@ public class SearchActivity extends Activity {
 	static MyCustomBaseAdapter adapter;
 	static ArrayList<SearchResults> searchResults = new ArrayList<SearchResults>();
 	
+	
+	private Handler handler;
 
 	static {
 		UIHandler = new Handler(Looper.getMainLooper());
@@ -80,7 +84,7 @@ public class SearchActivity extends Activity {
 		return out;
 	}
 
-	public static void SearchVideo(String search, int Page) {
+	public static void SearchOnDailyMotion(String search, int Page) {
 		String uri = "https://api.dailymotion.com/videos?search=" + search
 				+ "&fields=id,title,owner.screenname,thumbnail_120_url&page="
 				+ Page;
@@ -103,7 +107,8 @@ public class SearchActivity extends Activity {
 			}
 			searchTerm = temp;
 			progress.show();
-			SearchVideo(temp, 1);
+			SearchOnDailyMotion(temp, 1);
+			searchOnYoutube(temp);
 			pageCount = 1;
 			ShowMore = true;
 			searchResults.clear();
@@ -209,7 +214,7 @@ public class SearchActivity extends Activity {
 				if (ShowMore) {
 					//progress.show();
 					pageCount++;
-					SearchVideo(searchTerm, pageCount);
+					SearchOnDailyMotion(searchTerm, pageCount);
 				} else {
 					Toast.makeText(context, "More results not available",
 							Toast.LENGTH_SHORT).show();
@@ -223,11 +228,20 @@ public class SearchActivity extends Activity {
 					long id) {
 				Object o = listView.getItemAtPosition(position);
 				SearchResults fullObject = (SearchResults) o;
-				Intent myIntent = new Intent(context, MainActivity.class);
-				myIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				myIntent.putExtra("key", fullObject.getId());
-				myIntent.putExtra("title", fullObject.getTitle());
-				context.startActivity(myIntent);
+				if(fullObject.getProvider().compareTo("DailyMotion")==0)
+				{	Intent myIntent = new Intent(context, MainActivity.class);
+					myIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					myIntent.putExtra("key", fullObject.getId());
+					myIntent.putExtra("title", fullObject.getTitle());
+					context.startActivity(myIntent);
+				}
+				else if (fullObject.getProvider().compareTo("Youtube")==0)
+				{
+					Intent intent = new Intent(context,PlayerActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent.putExtra("VIDEO_ID", fullObject.getId());
+					context.startActivity(intent);
+				}
 			}
 		});
 	}
@@ -246,6 +260,8 @@ public class SearchActivity extends Activity {
 		listView = (ListView) findViewById(R.id.ListView01);
 		edit = (EditText) findViewById(R.id.searchText);
 		
+		handler=new Handler();
+		
 		textView = (TextView) findViewById(R.id.ListHeadingText);
 		TextView textView = (TextView) findViewById(R.id.ListHeadingText);
 		textView.setText("Showing:Trending Videos");
@@ -258,6 +274,21 @@ public class SearchActivity extends Activity {
 				"&sort=" + sort
 				+ "&fields=id,title,owner.screenname,thumbnail_120_url&page="
 				+ page;
+	}
+	
+	
+	private void searchOnYoutube(final String keywords){
+		new Thread(){
+			public void run(){
+				YoutubeConnector yc = new YoutubeConnector(SearchActivity.this);
+				searchResults.addAll(yc.search(keywords,sortBy,pageCount));				
+				/*handler.post(new Runnable(){
+					public void run(){
+						updateVideosFound();
+					}
+				});*/
+			}
+		}.start();
 	}
 
 }

@@ -6,6 +6,7 @@ public class SearchResults {
 	 private String owner = "";
 	 private String ThumbnailUrl = "";
 	 private String Provider = "";
+	 private String Description="";
 
 	 public void setId(String id) {
 	  this.id = id;
@@ -44,5 +45,13 @@ public class SearchResults {
 
 	 public String getProvider() {
 		  return Provider;
+	 }
+	 
+	 public void setDescription(String description) {
+		  this.Description = description;
+	 }
+
+	 public String getDescription() {
+		  return Description;
 	 }
 }
