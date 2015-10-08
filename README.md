@@ -1,9 +1,11 @@
 # PublicVideos
-1
+NOTE:
 Vimeo added in same player as DailyMotion.
 
-Error when clicked on video too quickly.
-the content of adapter has changed but listview did not receive a notification.
+BUGS:
+1. Error when clicked on video too quickly the content of adapter has changed but listview did not receive a notification.
 
-Youtube not working.
+2. Youtube player not working. (Dont know always or sometimes)
 
+Tasks:
+Find common search filters
