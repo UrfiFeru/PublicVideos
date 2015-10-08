@@ -144,12 +144,18 @@ public class DMWebVideoView extends WebView {
         loadUrl("javascript:player.api(\"" + method + "\")");
     }
     public void setVideoId(String videoId){
-        loadUrl(String.format(mEmbedUrl, videoId, mAllowAutomaticNativeFullscreen, getContext().getPackageName()));
+        String tempString = String.format(mEmbedUrl, videoId, mAllowAutomaticNativeFullscreen, getContext().getPackageName());
+        loadUrl(tempString);
+    }
+
+    public void setVideoId(String videoId,int i){
+        loadUrl("https://player.vimeo.com/video/"+videoId);
     }
 
     public void setVideoId(String videoId, boolean autoPlay){
         mAutoPlay = autoPlay;
-        loadUrl(String.format(mEmbedUrl, videoId, mAllowAutomaticNativeFullscreen, getContext().getPackageName()));
+        String tempString = String.format(mEmbedUrl, videoId, mAllowAutomaticNativeFullscreen, getContext().getPackageName());
+        loadUrl(tempString);
     }
 
     public void hideVideoView(){

@@ -19,10 +19,17 @@ public class MainActivity extends Activity {
         setContentView(R.layout.screen_sample);
         Intent intent = getIntent();
         String value = intent.getStringExtra("key");
-
+        String player = intent.getStringExtra("player");
         mVideoView = ((DMWebVideoView) findViewById(R.id.dmWebVideoView));
-        mVideoView.setVideoId(value);
-        mVideoView.setAutoPlay(true);
+        if(player.equals("Vimeo"))
+        {
+            mVideoView.setVideoId(value,0);        	
+        }
+        else
+        {
+            mVideoView.setVideoId(value);
+            mVideoView.setAutoPlay(true);
+        }
     }
 
 

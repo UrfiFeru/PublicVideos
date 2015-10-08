@@ -1,12 +1,10 @@
 package com.videos.publicvideos;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
-import android.view.View.OnKeyListener;
 import android.view.View.OnClickListener;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
 import java.util.HashMap;
@@ -33,7 +31,6 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -92,7 +89,7 @@ public class SearchActivity extends Activity {
 		textView.setText("Search Results (" + search.replace('+', ' ') + ")");
 	}
 
-	public void onClickBtn(View v) {
+	public void onClickBtn(View v) throws IOException {
 		String searchTxt = edit.getText().toString();
 		searchTxt.trim();
 		View view = this.getCurrentFocus();
@@ -109,6 +106,7 @@ public class SearchActivity extends Activity {
 			progress.show();
 			SearchOnDailyMotion(temp, 1);
 			searchOnYoutube(temp);
+			SearchOnVimeo(temp);
 			pageCount = 1;
 			ShowMore = true;
 			searchResults.clear();
@@ -233,13 +231,22 @@ public class SearchActivity extends Activity {
 					myIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					myIntent.putExtra("key", fullObject.getId());
 					myIntent.putExtra("title", fullObject.getTitle());
+					myIntent.putExtra("player", "DM");
 					context.startActivity(myIntent);
 				}
 				else if (fullObject.getProvider().compareTo("Youtube")==0)
 				{
-					Intent intent = new Intent(context,PlayerActivity.class);
+					Intent intent = new Intent(context,YTPlayerActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					intent.putExtra("VIDEO_ID", fullObject.getId());
+					context.startActivity(intent);
+				}
+				else if (fullObject.getProvider().compareTo("Vimeo")==0)
+				{
+					Intent intent = new Intent(context,MainActivity.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent.putExtra("key", fullObject.getId());
+					intent.putExtra("player", "Vimeo");
 					context.startActivity(intent);
 				}
 			}
@@ -291,4 +298,19 @@ public class SearchActivity extends Activity {
 		}.start();
 	}
 
+	private void SearchOnVimeo(final String keywords){
+		new Thread(){
+			public void run(){
+				try {
+					searchResults.addAll(Vimeo.searchVideos(keywords,String.valueOf(pageCount),"10"));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}.start();
+	}
 }

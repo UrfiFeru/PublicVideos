@@ -10,7 +10,7 @@ import com.google.android.youtube.player.YouTubePlayer.OnInitializedListener;
 import com.google.android.youtube.player.YouTubePlayer.Provider;
 import com.google.android.youtube.player.YouTubePlayerView;
 
-public class PlayerActivity extends YouTubeBaseActivity implements OnInitializedListener {
+public class YTPlayerActivity extends YouTubeBaseActivity implements OnInitializedListener {
 	
 	private YouTubePlayerView playerView;
 	
