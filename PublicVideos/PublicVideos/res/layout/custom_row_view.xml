@@ -45,4 +45,13 @@
         android:text="Owner"
         android:textColor="#0000FF" />
 
+    <ImageView
+        android:id="@+id/DownloadBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/owner"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="20dp"
+        android:src="@drawable/ic_launcher" />
+    
 </RelativeLayout>

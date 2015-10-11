@@ -14,8 +14,6 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -33,6 +31,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,12 +44,13 @@ public class SearchActivity extends Activity {
 	static boolean ShowMore = true;
 	private static Context context;
 	public static Handler UIHandler;
+	public static Context SearchActivityContext;
 	private static int pageCount = 1;
-	String sortBy="relevance";
+	String sortBy = "relevance";
 	static MyCustomBaseAdapter adapter;
 	static ArrayList<SearchResults> searchResults = new ArrayList<SearchResults>();
-	
-	
+	static String url = "";
+
 	private Handler handler;
 
 	static {
@@ -93,9 +93,9 @@ public class SearchActivity extends Activity {
 		String searchTxt = edit.getText().toString();
 		searchTxt.trim();
 		View view = this.getCurrentFocus();
-		if (view != null) {  
-		    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-		    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+		if (view != null) {
+			InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
 		}
 		if (!searchTxt.isEmpty()) {
 			String temp = searchTxt;
@@ -115,38 +115,38 @@ public class SearchActivity extends Activity {
 					Toast.LENGTH_SHORT).show();
 		}
 	}
-	
+
 	public void onClickImg(View v) {
-		//open popupwindow here
+		// open popupwindow here
 		final Dialog myDialog = new Dialog(this);
 		myDialog.requestWindowFeature(Window.FEATURE_LEFT_ICON);
-		View view = LayoutInflater.from(this).inflate(
-				R.layout.popup, null);
-		final RadioGroup radio=(RadioGroup)view.findViewById(R.id.radioGroup1);
-		final RadioButton r1=(RadioButton)view.findViewById(R.id.radio0);
-		final RadioButton r2=(RadioButton)view.findViewById(R.id.radio1);
-		final RadioButton r3=(RadioButton)view.findViewById(R.id.radio2);
+		View view = LayoutInflater.from(this).inflate(R.layout.popup, null);
+		final RadioGroup radio = (RadioGroup) view
+				.findViewById(R.id.radioGroup1);
+		final RadioButton r1 = (RadioButton) view.findViewById(R.id.radio0);
+		final RadioButton r2 = (RadioButton) view.findViewById(R.id.radio1);
+		final RadioButton r3 = (RadioButton) view.findViewById(R.id.radio2);
 		Button exit = (Button) view.findViewById(R.id.button1);
 		exit.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				int selectedID=radio.getCheckedRadioButtonId();
-				if(selectedID==r1.getId())
-					sortBy="relevance";
-				if(selectedID==r2.getId())
-					sortBy="ranking";
-				if(selectedID==r3.getId())
-					sortBy="recent";
-				
+				int selectedID = radio.getCheckedRadioButtonId();
+				if (selectedID == r1.getId())
+					sortBy = "relevance";
+				if (selectedID == r2.getId())
+					sortBy = "ranking";
+				if (selectedID == r3.getId())
+					sortBy = "recent";
+
 				myDialog.dismiss();
-				
+
 			}
 		});
 		myDialog.setContentView(view);
 		myDialog.setTitle("settings");
 		myDialog.show();
-		
+
 		myDialog.getWindow().setLayout(580, 540); // Controlling width and
 													// height.
 	}
@@ -181,11 +181,11 @@ public class SearchActivity extends Activity {
 					searchResults.add(temp);
 				}
 				progress.dismiss();
-				
+
 				SearchActivity.runOnUI(new Runnable() {
 					@Override
 					public void run() {
-						if(pageCount==1)
+						if (pageCount == 1)
 							CreateView();
 						else
 							adapter.notifyDataSetChanged();
@@ -210,7 +210,7 @@ public class SearchActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				if (ShowMore) {
-					//progress.show();
+					// progress.show();
 					pageCount++;
 					SearchOnDailyMotion(searchTerm, pageCount);
 				} else {
@@ -226,24 +226,20 @@ public class SearchActivity extends Activity {
 					long id) {
 				Object o = listView.getItemAtPosition(position);
 				SearchResults fullObject = (SearchResults) o;
-				if(fullObject.getProvider().compareTo("DailyMotion")==0)
-				{	Intent myIntent = new Intent(context, MainActivity.class);
+				if (fullObject.getProvider().compareTo("DailyMotion") == 0) {
+					Intent myIntent = new Intent(context, MainActivity.class);
 					myIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					myIntent.putExtra("key", fullObject.getId());
 					myIntent.putExtra("title", fullObject.getTitle());
 					myIntent.putExtra("player", "DM");
 					context.startActivity(myIntent);
-				}
-				else if (fullObject.getProvider().compareTo("Youtube")==0)
-				{
-					Intent intent = new Intent(context,YTPlayerActivity.class);
+				} else if (fullObject.getProvider().compareTo("Youtube") == 0) {
+					Intent intent = new Intent(context, YTPlayerActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					intent.putExtra("VIDEO_ID", fullObject.getId());
 					context.startActivity(intent);
-				}
-				else if (fullObject.getProvider().compareTo("Vimeo")==0)
-				{
-					Intent intent = new Intent(context,MainActivity.class);
+				} else if (fullObject.getProvider().compareTo("Vimeo") == 0) {
+					Intent intent = new Intent(context, MainActivity.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					intent.putExtra("key", fullObject.getId());
 					intent.putExtra("player", "Vimeo");
@@ -257,52 +253,51 @@ public class SearchActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.search);
+		SearchActivityContext = SearchActivity.this;
 		context = getApplicationContext();
 		progress = new ProgressDialog(this);
 		progress.setTitle("Searching");
 		progress.setMessage("Please wait while videos are being searched...");
 		progress.show();
-		String uri = makeUri(null,"trending", "1");
+		String uri = makeUri(null, "trending", "1");
 		new RequestTask().execute(uri);
 		listView = (ListView) findViewById(R.id.ListView01);
 		edit = (EditText) findViewById(R.id.searchText);
-		
-		handler=new Handler();
-		
+
+		handler = new Handler();
+
 		textView = (TextView) findViewById(R.id.ListHeadingText);
 		TextView textView = (TextView) findViewById(R.id.ListHeadingText);
 		textView.setText("Showing:Trending Videos");
-		
+
 	}
-	
-	public static String makeUri(String search, String sort, String page)
-	{
-		return "https://api.dailymotion.com/videos?search=" + search +
-				"&sort=" + sort
+
+	public static String makeUri(String search, String sort, String page) {
+		return "https://api.dailymotion.com/videos?search=" + search + "&sort="
+				+ sort
 				+ "&fields=id,title,owner.screenname,thumbnail_120_url&page="
 				+ page;
 	}
-	
-	
-	private void searchOnYoutube(final String keywords){
-		new Thread(){
-			public void run(){
+
+	private void searchOnYoutube(final String keywords) {
+		new Thread() {
+			public void run() {
 				YoutubeConnector yc = new YoutubeConnector(SearchActivity.this);
-				searchResults.addAll(yc.search(keywords,sortBy,pageCount));				
-				/*handler.post(new Runnable(){
-					public void run(){
-						updateVideosFound();
-					}
-				});*/
+				searchResults.addAll(yc.search(keywords, sortBy, pageCount));
+				/*
+				 * handler.post(new Runnable(){ public void run(){
+				 * updateVideosFound(); } });
+				 */
 			}
 		}.start();
 	}
 
-	private void SearchOnVimeo(final String keywords){
-		new Thread(){
-			public void run(){
+	private void SearchOnVimeo(final String keywords) {
+		new Thread() {
+			public void run() {
 				try {
-					searchResults.addAll(Vimeo.searchVideos(keywords,String.valueOf(pageCount),"10"));
+					searchResults.addAll(Vimeo.searchVideos(keywords,
+							String.valueOf(pageCount), "10"));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
