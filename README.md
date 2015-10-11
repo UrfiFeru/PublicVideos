@@ -13,6 +13,16 @@ BUGS:
 
 5. Add trending results at the start of the app.
 
+6. Change download icon.
+
+7. Duration should be added in the results as this is an important field.
+
+8. Vimeo does not give the owner of the video. (Something may be done about that)
+
+9. Find other bugs and add in this list 
+
+
+
 
 Tasks:
 
