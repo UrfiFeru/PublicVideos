@@ -21,6 +21,7 @@ BUGS:
 7. Vimeo does not give the owner of the video. (Something may be done about that)
 
 8. Find other bugs and add in this list 
+9. youtube download not working
 
 
 
